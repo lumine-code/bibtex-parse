@@ -1,0 +1,2 @@
+src/*.peggy text eol=lf
+lib/parser.js text eol=lf
