@@ -1,172 +1,98 @@
-## bibtex-parse
+# bibtex-parse
 
 Parses BibTeX and BibLaTeX into structured JavaScript data.
 
-Maintained by the Lumine project from the original work by Peter West.
+This maintained fork originates from Peter West's `bibtex-parse` project and keeps its broad real-world fixture corpus while providing a new resilient reader API for current Node.js releases.
+
+## Features
+
+- **Resilient documents**: returns valid entries around malformed blocks together with structured diagnostics.
+- **Source fidelity**: preserves raw directives, expressions, fields, comments, and precise source locations.
+- **Resolved values**: expands case-insensitive string macros, forward references, concatenations, and built-in month names.
+- **Data inheritance**: resolves cascading `xdata` and type-aware `crossref` relations while leaving `xref` independent.
+- **TeX decoding**: converts accents, ligatures, symbols, math characters, punctuation, and common formatting commands to Unicode without discarding the raw source.
+- **Strict validation**: optionally throws a location-aware `BibTeXParseError` at the first syntax error.
+
+## Installation
 
 ```sh
 npm install @lumine-code/bibtex-parse
 ```
 
-## Example
+Node.js 24.18 or newer is required.
+
+## Usage
 
 ```js
-const bibtexParse = require("@lumine-code/bibtex-parse");
-const fs = require("fs");
-const bibtex = fs.readFileSync("example.bib", "utf8");
-bibtexParse.entries(bibtex);
+const { parse } = require("@lumine-code/bibtex-parse");
+
+const document = parse(
+  String.raw`@string{journal = {Journal}}
+@article{muller2026,
+  author = {M\"{u}ller, Anna},
+  title = {A resilient parser},
+  journal = JOURNAL,
+  year = 2026
+}`,
+  { sourceName: "references.bib" },
+);
+
+console.log(document.entries[0].values.author); // Müller, Anna
+console.log(document.entries[0].values.journal); // Journal
+console.log(document.diagnostics); // []
 ```
 
-`example.bib`:
-
-```bib
-@preamble{"Reference list"}
-@string{ian = "Brown, Ian"}
-@string{jane = "Woods, Jane"}
-%references
-@inproceedings{Smith2009,
-  author=jane,
-  year=2009,
-  month=dec,
-  title={{Quantum somethings}},
-  journal={Journal of {B}lah}
-}
-
-@book{IP:1990,
-author = ian # " and " # jane,
-year = {1990},
-title = {Methods for Research}
-}
-```
-
-output:
-
-```json
-[
-  {
-    "key": "Smith2009",
-    "type": "inproceedings",
-    "AUTHOR": "Woods, Jane",
-    "YEAR": 2009,
-    "MONTH": "December",
-    "TITLE": "Quantum somethings",
-    "JOURNAL": "Journal of Blah"
-  },
-  {
-    "key": "IP:1990",
-    "type": "book",
-    "AUTHOR": "Brown, Ian and Woods, Jane",
-    "YEAR": "1990",
-    "TITLE": "Methods for Research"
-  }
-]
-```
-
-Note: fields are always output in capitals to distinguish from build in attributes (`key` and `type`).
-
-## Abstract Syntax Tree
-
-To get the AST, use:
+Parsing is tolerant by default. A malformed directive becomes an `invalid` item, adds an error diagnostic, and does not prevent later valid entries from being returned.
 
 ```js
-bibtexParse.parse(bibtex, options);
+const document = parse(source, { sourceName: "references.bib" });
+
+for (const diagnostic of document.diagnostics) {
+  const { line, column } = diagnostic.location.start;
+  console.warn(`${diagnostic.code} at ${line}:${column}: ${diagnostic.message}`);
+}
 ```
 
-Where `bibtex` is a string representing bibtex to be parsed, and options an object with any of the following:
+Use strict mode when partial results are not acceptable:
 
-- `number`: tells the parser how numbers should be returned.
-  - `number: "auto"` (default): return a JavaScript number, unless over [MAX_SAFE_INTEGER](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER) (9007199254740991), in which case a BigInt is returned.
-  - `number: "number"`: always return a JavaScript number, even if over MAX_SAFE_INTEGER (in which case the precision will be lost).
-  - `number: "bigint"`: always return a BigInt.
-  - `number: "string"`: return number as a string.
-
-This will return an array of items. There are four types of item:
-
-- **string**: `{ itemtype: 'string', name, value, datatype, enclosed }`
-- **preamble**: `{ itemtype: 'preamble', value, datatype, enclosed }`
-- **comment**: `{ itemtype: 'comment', comment }`
-- **entry**: `{ itemtype: 'entry', type, key, enclosed, fields }`,
-  - `type`: e.g. article, inproceedings, book
-  - `key`: the unique identifier for the entry
-  - `fields`: e.g. title, year `[{ name: 'year', value: 2001, datatype: 'number' }, ...]`
-
-Datatype can be one of the following:
-
-- `number`: an integer number
-- `identifier`: a string variable name
-- `braced`: a value which was enclosed in curly braces
-- `quoted`: a value which was enclosed in double quotes
-- `concatinate`: in which case the corresponding `value` property will be an array `[{ datatype, value }, ...]`
-- `null`: used when no value has been assigned, e.g. `@string{a}`
-- `unenclosed`: used when a preamble has not been properly enclosed (e.g `@preamble{this isn't enclosed}`).
-
-Enclosed can be one of the following:
-
-- `braces` - when item is enclosed in curly braces (e.g. `@string{a = 1}`)
-- `parentheses` - when item is enclosed in brackets (e.g. `@string(a = 1)`)
-
-```json
-[
-  {
-    "itemtype": "preamble",
-    "enclosed": "braces",
-    "value": "Reference list",
-    "datatype": "quoted"
-  },
-  { "itemtype": "comment", "comment": "\n" },
-  {
-    "itemtype": "string",
-    "name": "ian",
-    "value": "Brown, Ian",
-    "datatype": "quoted"
-  },
-  { "itemtype": "comment", "comment": "\n" },
-  {
-    "itemtype": "string",
-    "name": "jane",
-    "value": "Woods, Jane",
-    "datatype": "quoted"
-  },
-  { "itemtype": "comment", "comment": "\n%references\n" },
-  {
-    "itemtype": "entry",
-    "type": "inproceedings",
-    "enclosed": "braces",
-    "key": "Smith2009",
-    "fields": [
-      { "name": "author", "value": "jane", "datatype": "identifier" },
-      { "name": "year", "value": 2009, "datatype": "number" },
-      { "name": "month", "value": "dec", "datatype": "identifier" },
-      {
-        "name": "title",
-        "value": "{Quantum somethings}",
-        "datatype": "braced"
-      },
-      { "name": "journal", "value": "Journal of {B}lah", "datatype": "braced" }
-    ]
-  },
-  { "itemtype": "comment", "comment": "\n\n" },
-  {
-    "itemtype": "entry",
-    "type": "inproceedings",
-    "enclosed": "braces",
-    "key": "Smith2009",
-    "fields": [
-      { "name": "author", "value": "jane", "datatype": "identifier" },
-      { "name": "year", "value": 2009, "datatype": "number" },
-      { "name": "month", "value": "dec", "datatype": "identifier" },
-      {
-        "name": "title",
-        "value": "{Quantum somethings}",
-        "datatype": "braced"
-      },
-      { "name": "journal", "value": "Journal of {B}lah", "datatype": "braced" }
-    ]
-  }
-]
+```js
+const document = parse(source, { sourceName: "references.bib", strict: true });
 ```
 
-## Resources
+## API
 
-- A summary of BibTex - http://maverick.inria.fr/~Xavier.Decoret/resources/xdkbibtex/bibtex_summary.html
-- ORCID bibtex parse library - https://github.com/ORCID/bibtexParseJs
+### `parse(source, options)`
+
+Parses a string and returns a document with these views:
+
+- `items`: every source segment in order, including entries, strings, preambles, comments, and invalid blocks.
+- `entries`: valid bibliography entries, referencing the same entry objects present in `items`.
+- `strings`, `preambles`, `comments`: filtered views of the corresponding source items.
+- `diagnostics`: ordered errors and warnings with codes, messages, severities, and locations.
+
+Each entry contains its original `key`, lowercase `entryType`, ordered source `fields`, exact `raw` text, `location`, and a lowercase `values` map. Source fields retain their original name, parsed expression, raw right-hand side, decoded value, and location. Numeric literals stay strings so identifiers such as ISBNs never lose precision.
+
+Options:
+
+- `sourceName`: name copied into every location and diagnostic; defaults to `null`.
+- `strict`: throw the first error as `BibTeXParseError`; defaults to `false`.
+
+Locations contain zero-based, end-exclusive UTF-16 offsets and one-based line and column numbers.
+
+### `decodeTeX(source)`
+
+Returns Unicode display text for a TeX value. Braces used for case protection are removed, recognized commands are decoded, and unknown commands remain visible rather than being discarded.
+
+### `BibTeXParseError`
+
+Extends `SyntaxError` and exposes the originating `diagnostic`, its stable `code`, and its exact `location`.
+
+## Building
+
+`npm run build` compiles `src/bibtex.peggy` into the committed CommonJS parser. Generated output must be committed because Git dependencies may be installed with lifecycle scripts disabled.
+
+Run `npm test` for the Jasmine suite and `npm run lint` for ESLint and formatting checks.
+
+## Contributing
+
+Got ideas to make this package better, found a bug, or want to help add new features? Just drop your thoughts on GitHub. Any feedback is welcome!

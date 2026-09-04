@@ -1,9 +1,11 @@
-/* jshint esversion: 6 */
-const bibtexParse = require("..");
 const fs = require("fs");
 const path = require("path");
+const { parse } = require("..");
 
-let bib = fs.readFileSync(path.join(__dirname, "example.bib"), "utf8"),
-  parsed = bibtexParse.parse(bib);
+const sourcePath = path.join(__dirname, "example.bib");
+const source = fs.readFileSync(sourcePath, "utf8");
+const document = parse(source, { sourceName: sourcePath });
 
-console.log(JSON.stringify(parsed, null, 2));
+console.log(
+  JSON.stringify({ entries: document.entries, diagnostics: document.diagnostics }, null, 2),
+);

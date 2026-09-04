@@ -1,8 +1,24 @@
-#v1.0.0
+# Changelog
 
-Now supports @Comment and comments without % prefixed.
+## 1.0.0
 
-Breaking changes:
+- Rebranded the maintained fork as `@lumine-code/bibtex-parse` for Node.js 24.18 and newer.
+- Replaced the fail-fast document parser with tolerant recovery and structured source diagnostics.
+- Added exact raw source data and locations to directives, entries, fields, and expressions.
+- Added Unicode TeX decoding, case-insensitive string expansion, forward references, and inheritance through `xdata` and `crossref`.
+- Replaced Rollup, PEG.js, and Tap with Peggy, Jasmine, ESLint, Prettier, and multiplatform CI.
 
-- parse() now returns a list instead of an object. The list includes entries, preambles, strings, and entries.
-- property values now have a "enclosed" key instead of a "brace" key. Enclosed may be "brace", "quote", or null.
+## Upstream history
+
+### 2.1.0
+
+- Added configurable handling for numeric literals larger than `Number.MAX_SAFE_INTEGER`.
+
+### 2.0.0
+
+- Rewrote the parser and added fixtures collected from other BibTeX parsers.
+
+### 1.0.0
+
+- Added `@comment` directives and comments without a `%` prefix.
+- Changed the original AST from an object to an ordered list.
