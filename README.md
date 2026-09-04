@@ -11,9 +11,9 @@ npm install @lumine-code/bibtex-parse
 ## Example
 
 ```js
-const bibtexParse = require('@lumine-code/bibtex-parse');
-const fs = require('fs');
-const bibtex = fs.readFileSync('example.bib', 'utf8');
+const bibtexParse = require("@lumine-code/bibtex-parse");
+const fs = require("fs");
+const bibtex = fs.readFileSync("example.bib", "utf8");
 bibtexParse.entries(bibtex);
 ```
 

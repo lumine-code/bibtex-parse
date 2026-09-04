@@ -6,16 +6,27 @@
   "repository": "https://github.com/lumine-code/bibtex-parse",
   "bugs": "https://github.com/lumine-code/bibtex-parse/issues",
   "homepage": "https://github.com/lumine-code/bibtex-parse/",
-  "main": "bibtex-parse.js",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "test": "rollup -c && tap test",
-    "cover": "rollup -c && tap -j6 --cov --coverage-report=lcov test",
-    "build": "rollup -c"
+    "build": "peggy --format commonjs --output lib/parser.js src/bibtex.peggy",
+    "test": "jasmine",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "rollup": "^2.0.2",
-    "rollup-plugin-pegjs": "^2.1.3",
-    "tap": "^14.10.6"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-n": "^18.3.0",
+    "globals": "^17.12.0",
+    "jasmine": "^7.0.0",
+    "peggy": "^5.1.0",
+    "prettier": "^3.9.6"
   },
   "publishConfig": {
     "access": "public"
@@ -23,6 +34,9 @@
   "engines": {
     "node": ">=24.18.0"
   },
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "keywords": [
     "bibtex",
