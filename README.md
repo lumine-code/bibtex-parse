@@ -1,15 +1,17 @@
 ## bibtex-parse
 
-Parse BibTeX to JSON.
+Parses BibTeX and BibLaTeX into structured JavaScript data.
+
+Maintained by the Lumine project from the original work by Peter West.
 
 ```sh
-npm install bibtex-parse
+npm install @lumine-code/bibtex-parse
 ```
 
 ## Example
 
 ```js
-const bibtexParse = require('bibtex-parse');
+const bibtexParse = require('@lumine-code/bibtex-parse');
 const fs = require('fs');
 const bibtex = fs.readFileSync('example.bib', 'utf8');
 bibtexParse.entries(bibtex);
