@@ -173,10 +173,18 @@ describe("TeX decoding", () => {
     );
   });
 
-  it("preserves unknown commands and reports them from parsed fields", () => {
+  it("preserves unknown commands without treating valid TeX as a parsing issue", () => {
     const document = parse(String.raw`@article{x,title={A \custom{term}}}`);
     expect(document.entries[0].values.title).toBe(String.raw`A \custom{term}`);
-    expect(diagnosticCodes(document)).toEqual(["unknown-tex-command"]);
+    expect(document.diagnostics).toEqual([]);
+
+    const unknown = [];
+    expect(
+      decodeTeX(String.raw`A \custom{term}`, {
+        onUnknown: (command) => unknown.push(command),
+      }),
+    ).toBe(String.raw`A \custom{term}`);
+    expect(unknown).toEqual(["custom"]);
   });
 
   it("keeps raw TeX beside the decoded value", () => {
@@ -210,6 +218,14 @@ describe("data inheritance", () => {
     expect(document.entries[3].values).toEqual(
       jasmine.objectContaining({ publisher: "Press", location: "London" }),
     );
+  });
+
+  it("resolves crossrefs through BibLaTeX ids aliases", () => {
+    const document = parse(`@mvbook{parent,ids={parent-alias},title={Collected Works}}
+@book{child,crossref={parent-alias},title={Volume One}}`);
+
+    expect(document.entries[1].values.maintitle).toBe("Collected Works");
+    expect(document.diagnostics).toEqual([]);
   });
 
   it("applies xdata before type-aware crossref mappings", () => {

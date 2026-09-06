@@ -9,7 +9,7 @@ This maintained fork originates from Peter West's `bibtex-parse` project and kee
 - **Resilient documents**: returns valid entries around malformed blocks together with structured diagnostics.
 - **Source fidelity**: preserves raw directives, expressions, fields, comments, and precise source locations.
 - **Resolved values**: expands case-insensitive string macros, forward references, concatenations, and built-in month names.
-- **Data inheritance**: resolves cascading `xdata` and type-aware `crossref` relations while leaving `xref` independent.
+- **Data inheritance**: resolves cascading `xdata`, BibLaTeX `ids` aliases, and type-aware `crossref` relations while leaving `xref` independent.
 - **TeX decoding**: converts accents, ligatures, symbols, math characters, punctuation, and common formatting commands to Unicode without discarding the raw source.
 - **Strict validation**: optionally throws a location-aware `BibTeXParseError` at the first syntax error.
 
