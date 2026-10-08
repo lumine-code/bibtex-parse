@@ -2,6 +2,8 @@
 
 Parses BibTeX and BibLaTeX into structured JavaScript data.
 
+Fork of [FlamingTempura/bibtex-parse](https://github.com/FlamingTempura/bibtex-parse).
+
 This maintained fork originates from Peter West's `bibtex-parse` project and keeps its broad real-world fixture corpus while providing a new resilient reader API for current Node.js releases.
 
 ## Features
