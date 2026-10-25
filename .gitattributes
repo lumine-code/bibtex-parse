@@ -1,2 +1,11 @@
+# Text uses LF on every platform; Windows command scripts require CRLF.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
 src/*.peggy text eol=lf
 lib/parser.js text eol=lf
+
+# Imported bibliography fixtures keep their source bytes.
+test/valid/** -text
+test/invalid/** -text
