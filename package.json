@@ -20,10 +20,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^18.5.0",
-    "globals": "^17.13.0",
+    "globals": "^17.14.0",
     "jasmine": "^7.0.0",
     "peggy": "^5.1.1",
     "prettier": "^3.9.10"
@@ -46,5 +46,16 @@
     "parser",
     "citation",
     "lumine"
-  ]
+  ],
+  "overrides": {
+    "eslint@^10.14.0": {
+      "minimatch": "11.0.4"
+    },
+    "@eslint/config-array@0.23.5": {
+      "minimatch": "11.0.4"
+    },
+    "jasmine@^7.0.0": {
+      "glob": "14.0.3"
+    }
+  }
 }
